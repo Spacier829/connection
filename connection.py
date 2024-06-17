@@ -21,7 +21,7 @@ class Connection:
     lock = Lock()
     output_data = Queue()
 
-    logger.add(time.strftime('%d-%m-%Y_%H-%M') + ".log",
+    logger.add(time.strftime("logs/" + '%d-%m-%Y_%H-%M') + ".log",
                format="{time:MMMM DD, YYYY > HH:mm:ss} |"
                       " {level: <8} | {name}:{function}:{line} | {message} ")
 
@@ -74,7 +74,6 @@ class Connection:
                                 self.get_frame_info(data_frame)
                                 data_frame = 0
                                 read_packet = read_packet[end_header:]
-                                # logger.info(read_packet)
                             else:
                                 start_header += 1
                                 end_header += 1
@@ -85,7 +84,6 @@ class Connection:
                                         self.get_frame_info(data_frame)
                                         data_frame = 0
                                         read_packet = read_packet[end_header:]
-                                        # logger.info(read_packet)
                                     else:
                                         self.COUNTER_ALL_FRAMES += 1
                                         self.COUNTER_BAD_FRAMES += 1
@@ -97,7 +95,6 @@ class Connection:
                                     read_packet = 0
                         else:
                             data_frame = read_packet[start_header:]
-                            # logger.info(data_frame)
                             read_packet = 0
                     else:
                         end_header = start_header
@@ -110,7 +107,6 @@ class Connection:
                             self.get_frame_info(data_frame)
                             data_frame = 0
                             read_packet = read_packet[end_header:]
-                            # logger.info(read_packet)
                         else:
                             end_header += 1
                             if end_header <= len(read_packet):
@@ -122,7 +118,6 @@ class Connection:
                                     self.get_frame_info(data_frame)
                                     data_frame = 0
                                     read_packet = read_packet[end_header:]
-                                    # logger.info(read_packet)
                                 else:
                                     self.COUNTER_ALL_FRAMES += 1
                                     self.COUNTER_BAD_FRAMES += 1
@@ -133,14 +128,11 @@ class Connection:
                                 read_packet = 0
                 elif data_frame != 0:
                     data_frame = data_frame + read_packet
-                    # logger.info(data_frame)
                     read_packet = 0
                 elif read_packet == b'\xc0':
                     data_frame = read_packet
                     read_packet = 0
                 else:
-                    # logger.info(data_frame)
-                    # logger.info(read_packet)
                     read_packet = 0
 
     def is_crc_valid(self, data_frame):
@@ -237,10 +229,12 @@ class Connection:
         return bit_data, temperature_value
 
     def get_output_data(self):
-        if self.output_data.not_empty:
+        if not self.output_data.empty():
             with self.lock:
+                logger.info(self.output_data.qsize())
                 return self.output_data.get()
         else:
+            time.sleep(.5)
             logger.warning("Output data is empty")
 
 
@@ -248,6 +242,5 @@ connection = Connection()
 connection.connect()
 
 while True:
-    time.sleep(0.01)
     a = connection.get_output_data()
-    b = 123
+    logger.info(a)

@@ -1,3 +1,4 @@
+import threading
 import time
 
 import serial
@@ -19,6 +20,7 @@ class Connection:
     ports = serial.tools.list_ports.comports()
 
     lock = Lock()
+    stop_event = threading.Event()
     output_data = Queue()
 
     logger.add(time.strftime("logs/" + '%d-%m-%Y_%H-%M') + ".log",
@@ -39,7 +41,8 @@ class Connection:
     def connect(self):
         try:
             self.device = serial.Serial(self.port_name, self.baudrate)
-            connection_thread = Thread(target=self.read_data)
+            connection_thread = Thread(target=self.read_data,
+                                       args=(self.stop_event,))
             connection_thread.start()
         except serial.serialutil.SerialException:
             logger.warning("Can't connect to: ", self.port_name)
@@ -47,12 +50,16 @@ class Connection:
     def disconnect(self):
         if self.device_is_connected():
             self.device.close()
+            self.stop_event.set()
         else:
             logger.info(self.port_name, " is already disconnected")
 
     def reconnect(self):
         self.disconnect()
         self.connect()
+        # time.sleep(0.1)
+        # read_data = self.device.read_all()
+        # if read_data == b'':
 
     def read_data(self):
         header = b'\xc0\xc0'
@@ -61,6 +68,8 @@ class Connection:
         while self.device_is_connected():
             time.sleep(0.01)
             read_packet = self.device.read_all()
+            if read_packet == b'':
+                self.reconnect()
             # read_packet = test
             while read_packet != 0:
                 start_header = read_packet.find(header)
@@ -241,6 +250,6 @@ class Connection:
 connection = Connection()
 connection.connect()
 
-while True:
-    a = connection.get_output_data()
-    logger.info(a)
+# while True:
+#     a = connection.get_output_data()
+#     logger.info(a)

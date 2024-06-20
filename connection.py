@@ -18,6 +18,7 @@ class Connection:
     device = serial.Serial()
     ports = serial.tools.list_ports.comports()
 
+    connection_thread = Thread()
     lock = Lock()
     stop_event = threading.Event()
 
@@ -39,15 +40,16 @@ class Connection:
         try:
             self.stop_event.clear()
             self.device = serial.Serial(self.port_name, self.baudrate)
-            connection_thread = Thread(target=self.read_packet,
-                                       args=(self.stop_event,))
-            connection_thread.start()
+            self.connection_thread = Thread(target=self.read_packet,
+                                            args=(self.stop_event,))
+            self.connection_thread.start()
         except serial.serialutil.SerialException:
             logger.warning("Can't connect to: " + self.port_name)
 
     def disconnect(self):
         if self.device.is_open:
             self.stop_event.set()
+            self.connection_thread.join()
             self.device.close()
             logger.info(self.port_name + " is disconnected")
         else:
@@ -65,8 +67,8 @@ class Connection:
             time.sleep(0.005)
             packet = self.device.read_all()
             if packet == b'':
-                logger.warning(self.port_name + " can't get data")
-                self.stop_event.set()
+                logger.warning(self.port_name + " doesn't provide data")
+                # self.stop_event.set()
             else:
                 packets_buff += packet
             while len(packets_buff) >= 32:
@@ -192,6 +194,8 @@ class Connection:
 if __name__ == "__main__":
     connection = Connection()
     connection.connect()
+    # connection.disconnect()
+    connection.reconnect()
     # while True:
     #     time.sleep(0.5)
     #     a = connection.get_output_data()

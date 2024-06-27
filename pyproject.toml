@@ -7,9 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-serial = "^0.0.97"
 loguru = "^0.7.2"
 numpy = "^2.0.0"
+pyserial = "^3.5"
+pyqtgraph = "^0.13.7"
+pyqt6 = "^6.7.0"
 
 
 [build-system]

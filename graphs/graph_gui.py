@@ -9,16 +9,16 @@ class graph_gui(pg.PlotItem):
                  enableMenu=True, **kargs):
         super().__init__(parent, name, labels, title, viewBox, axisItems,
                          enableMenu, **kargs)
-        self.angular_velocity_plot = self.plot(pen=(255, 255, 255))
-        self.angular_velocity_data = np.linspace(0, 0, 10)
+        self.graph_plot = self.plot(pen=(255, 255, 255))
+        self.graph_data = np.linspace(0, 0, 10)
         self.ptr1 = 0
 
     def set_title(self, title):
         self.setTitle(title)
 
     def update(self, value):
-        self.angular_velocity_data[:-1] = self.angular_velocity_data[1:]
-        self.angular_velocity_data[-1] = float(value)
+        self.graph_data[:-1] = self.graph_data[1:]
+        self.graph_data[-1] = float(value)
         self.ptr1 += 1
-        self.angular_velocity_plot.setData(self.angular_velocity_data)
-        self.angular_velocity_plot.setPos(self.ptr1, 0)
+        self.graph_plot.setData(self.graph_data)
+        self.graph_plot.setPos(self.ptr1, 0)

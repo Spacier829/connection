@@ -1,3 +1,5 @@
+import time
+
 import pyqtgraph as pg
 from graphs.graph_gui import graph_gui
 import serial
@@ -25,9 +27,13 @@ reconnect_btn.setEnabled(False)
 
 timer = pg.QtCore.QTimer()
 
+connection = Connection(com_ports.currentText())
+
+
 def on_connect_clicked():
-    connection = Connection(com_ports.currentText())
     connection.connect()
+    time.sleep(5)
+    connection.stop_event.set()
     connect_btn.setEnabled(False)
     disconnect_btn.setEnabled(True)
     reconnect_btn.setEnabled(True)
@@ -36,7 +42,7 @@ def on_connect_clicked():
 
 
 def on_disconnect_clicked():
-    Connection.disconnect()
+    connection.disconnect()
     connect_btn.setEnabled(True)
     disconnect_btn.setEnabled(False)
     reconnect_btn.setEnabled(False)
@@ -44,7 +50,7 @@ def on_disconnect_clicked():
 
 
 def on_reconnect_clicked():
-    Connection.reconnect()
+    connection.reconnect()
     connect_btn.setEnabled(False)
     disconnect_btn.setEnabled(True)
     timer.timeout.connect(update_graphics)
@@ -137,7 +143,7 @@ layout.nextRow()
 
 
 def update_graphics():
-    values = Connection.get_output_data()
+    values = connection.get_output_data()
     angular_velocity_x.update(values[1])
     angular_velocity_y.update(values[2])
     angular_velocity_z.update(values[3])

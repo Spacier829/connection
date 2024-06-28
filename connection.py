@@ -50,6 +50,9 @@ class Connection:
             self.stop_event.set()
             self.connection_thread.join()
             self.device.close()
+            self.COUNTER_ALL_FRAMES = 0
+            self.COUNTER_GOOD_FRAMES = 0
+            self.COUNTER_BAD_FRAMES = 0
             logger.info(self.port_name + " is disconnected")
         else:
             logger.info(self.port_name + " is already disconnected")
